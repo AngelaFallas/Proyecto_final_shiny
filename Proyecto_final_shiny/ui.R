@@ -3,33 +3,48 @@ library(shiny)
 library(dplyr)
 library(readr)
 library(janitor)
+library(ggplot2)
 
-menstruaccion <- read_csv("https://raw.githubusercontent.com/cienciadedatos/datos-de-miercoles/master/datos/2019/2019-12-04/menstruaccion.csv") %>%
+menstruacion <- read_csv("https://raw.githubusercontent.com/cienciadedatos/datos-de-miercoles/master/datos/2019/2019-12-04/menstruaccion.csv") %>%
   clean_names()
+
+menstruacion$precio_por_unidad <- as.numeric(menstruacion$precio_por_unidad)
 
 ui <- dashboardPage(
   skin = "purple",
-  dashboardHeader(title = "Menstruacción Shiny App"),
+  dashboardHeader(title = "Menstruación Dashboard"),
   dashboardSidebar(
     radioButtons("categoria_input", "Seleccionar Categoría", 
-                 choices = unique(menstruaccion$categoria)),
-    numericInput("precio_max_input", "Precio Máximo", 
-                 value = 100, min = 0, max = 500),
-    sliderInput("calificacion_input", "Calificación", 
-                value = c(1, 5), min = 1, max = 5, step = 0.1),
+                 choices = unique(menstruacion$categoria),
+                 selected = unique(menstruacion$categoria)[1]),
+    
+    numericInput("precio_input", "Precio por unidad", 
+                 value = mean(menstruacion$precio_por_unidad, na.rm = TRUE), 
+                 min = 0, max = 500),
+    
+    numericInput("presentacion_input", "Presentación", 
+                 value = median(menstruacion$presentacion, na.rm = TRUE),
+                 min = 1, max = 32, step = 1),
+    
     selectInput("marca", 
                 label = "Seleccionar Marca",
-                choices = unique(menstruaccion$marca),
-                selected = unique(menstruaccion$marca)[1],
+                choices = unique(menstruacion$marca),
+                selected = unique(menstruacion$marca)[1],
                 multiple = TRUE),
-    selectInput("sucursal_input", "Seleccionar Sucursal", 
-                choices = unique(menstruaccion$sucursal),
-                selected = unique(menstruaccion$sucursal)[1])
     
+    selectInput("sucursal_input", "Seleccionar Sucursal", 
+                choices = unique(menstruacion$sucursal),
+                selected = unique(menstruacion$sucursal)[1]),
+    
+    downloadButton("download_data_btn", "Descargar Datos")
   ),
-  
   dashboardBody(
-    textOutput("output_text_body"),
-    textOutput("output_text")
+    tabsetPanel(
+      tabPanel("Tabla de datos",
+               dataTableOutput("tabla_datos")),
+      
+      tabPanel("Gráfico",
+               plotOutput("grafico"))
+    )
   )
 )
