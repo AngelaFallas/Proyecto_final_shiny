@@ -1,9 +1,7 @@
-# server.R
-
 server <- function(input, output, session) {
-  
   # Crear un objeto reactivo para almacenar los datos filtrados
   datos_filtrados <- reactive({
+    
     filter(menstruacion, 
            categoria == input$categoria_input,
            precio_por_unidad <= input$precio_input,
@@ -20,7 +18,10 @@ server <- function(input, output, session) {
     content = function(file) {
       datos_seleccionados <- datos_filtrados()
       write_csv(datos_seleccionados, file)
-      shinyalert("Descarga Exitosa", "Los datos se han descargado correctamente.", type = "success")
+      shinyalert(title = "Descarga Exitosa",
+                 text = "Los datos se han descargado correctamente",
+                 type = "success",
+                 confirmButtonText = "Cerrar")
     }
   )
   
@@ -42,8 +43,6 @@ server <- function(input, output, session) {
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
   })
-  
-  
 }
 
 shinyApp(ui, server)
